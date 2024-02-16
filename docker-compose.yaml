@@ -1,0 +1,117 @@
+version: "3.4"
+services:
+  broker:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      default:
+    labels:
+      backups: "true"
+
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: paperless
+      POSTGRES_USER: paperless
+      POSTGRES_PASSWORD: paperless
+    networks:
+      default:
+    labels:
+      backups: "true"
+
+  app:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    restart: unless-stopped
+    depends_on:
+      - db
+      - broker
+      - gotenberg
+      - tika
+      - sftp
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - app_data:/usr/src/paperless/data
+      - app_media:/usr/src/paperless/media
+      - app_export:/usr/src/paperless/export
+      - sftp_data:/usr/src/paperless/consume
+      - $PWD/scripts/decrypt-pdf:/usr/local/bin/scripts/decrypt-pdf
+    environment:
+      PAPERLESS_REDIS: redis://broker:6379
+      PAPERLESS_DBHOST: db
+      PAPERLESS_TIKA_ENABLED: 1
+      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
+      PAPERLESS_TIKA_ENDPOINT: http://tika:9998
+      PAPERLESS_ENABLE_UPDATE_CHECK: true
+      PAPERLESS_TIMEZONE:
+      PAPERLESS_SECRET_KEY:
+      PAPERLESS_OCR_LANGUAGE:
+      PAPERLESS_FILENAME_FORMAT:
+      PAPERLESS_URL:
+      PAPERLESS_CONSUMER_ENABLE_BARCODES:
+      PAPERLESS_EMAIL_TASK_CRON: "*/2 * * * *"
+      PAPERLESS_TRAIN_TASK_CRON: "*/15 * * * *"
+      PAPERLESS_INDEX_TASK_CRON: "0 * * * *"
+      PAPERLESS_TASK_WORKERS: 2
+      PAPERLESS_THREADS_PER_WORKER: 2
+      PAPERLESS_TIME_ZONE: "Europe/Berlin"
+      PAPERLESS_FILENAME_FORMAT_REMOVE_NONE: true
+      PAPERLESS_DECRYPT_PASSWORD:
+      PAPERLESS_PRE_CONSUME_SCRIPT: "/usr/local/bin/scripts/decrypt-pdf"
+    networks:
+      default:
+      proxy_apps:
+    labels:
+      backups: "true"
+
+  sftp:
+    image: atmoz/sftp:alpine
+    restart: unless-stopped
+    volumes:
+      - sftp_data:/home/${SFTP_USERNAME}/documents
+      - $PWD/keys:/etc/ssh:ro
+    ports:
+      - "2222:22"
+    networks:
+      default:
+    command: ${SFTP_USERNAME}:${SFTP_PASSWORD}:1000
+    # see https://github.com/atmoz/sftp/issues/341#issuecomment-1509470933
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  gotenberg:
+    image: gotenberg/gotenberg:7
+    restart: unless-stopped
+    environment:
+      CHROMIUM_DISABLE_ROUTES: 1
+    networks:
+      default:
+
+  tika:
+    image: apache/tika
+    restart: unless-stopped
+    networks:
+      default:
+
+networks:
+  proxy_apps:
+    name: proxy_apps
+    external: true
+
+volumes:
+  app_data:
+  app_media:
+  db_data:
+  redis_data:
+  sftp_data:
+  app_export:

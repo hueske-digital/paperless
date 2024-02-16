@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+# Check if the file is encrypted
+encryption_info=$(qpdf --show-encryption "${DOCUMENT_WORKING_PATH}" 2>&1)
+
+if echo "$encryption_info" | grep -q "File is not encrypted"; then
+    echo "File is not encrypted. Skipping..."
+    exit 0  # Exit the script here since the PDF is not encrypted
+else
+    # Assuming that passwords are stored in the environment variable PAPERLESS_DECRYPT_PASSWORD, separated by spaces
+    passwords=($PAPERLESS_DECRYPT_PASSWORD)
+
+    for password in "${passwords[@]}"
+    do
+        # Try to decrypt the file with the current password
+        if qpdf --decrypt --replace-input --password="$password" "${DOCUMENT_WORKING_PATH}" >/dev/null 2>&1; then
+            echo "Decryption successful with provided password"
+            exit 0  # Exit the script here since decryption was successful
+        else
+            echo "Decryption failed with provided password"
+        fi
+    done
+fi
