@@ -13,6 +13,7 @@ services:
     restart: unless-stopped
     volumes:
       - db_data:/var/lib/postgresql/data
+      - $PWD/backup.sh:/scripts/backup.sh:ro
     environment:
       POSTGRES_DB: paperless
       POSTGRES_USER: paperless
