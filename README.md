@@ -1,6 +1,6 @@
 # Paperless
 
-Paperless is a digital document management solution designed to help you manage your documents in a Docker environment. This stack leverages Docker-Compose to simplify deployment and management.
+[Paperless](https://docs.paperless-ngx.com/) is a digital document management solution designed to help you manage your documents in a Docker environment. This stack leverages Docker-Compose to simplify deployment and management.
 
 ## Requirements
 
