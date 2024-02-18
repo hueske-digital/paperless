@@ -51,28 +51,28 @@ PAPERLESS_DECRYPT_PASSWORD="test test123"
 
 ## Lifecycle Management
 
-Update the sourcecode and all images. After that recreate them if new images are available:<br>
+- **Update the entire stack:**<br>
 ```
 git pull
 docker compose up -d --pull=always --remove-orphans
 ```
 
-Restart a single container:<br>
-```
-docker compose restart app
-```
-
-Recreate the stack (e.g. when changing `.env` file):<br>
+- **Recreate the stack (e.g. when changing `.env` file):**<br>
 ```
 docker compose up -d --force-recreate
 ```
 
-Shutdown all container of this compose file:<br>
+- **Shutdown the entire stack:**<br>
 ```
 docker compose down
 ```
 
-Show and follow logs:<br>
+- **Restart a single container:**<br>
+```
+docker compose restart app
+```
+
+- **Show logs:**<br>
 ```
 docker compose logs -ft
 ```
