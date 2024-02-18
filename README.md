@@ -1,45 +1,70 @@
-# Paperless-ngx
+# Paperless
 
-This repository contains a Paperless-ngx instance with a ready-to-use configured [Apache Tika](https://tika.apache.org/) and [Gotenberg](https://gotenberg.dev/) to OCR your documents as well as a Postgres database for fast storage.
+Paperless is a digital document management solution designed to help you manage your documents in a Docker environment. This stack leverages Docker-Compose to simplify deployment and management.
 
 ## Requirements
 
-Make sure that the [nginx reverse proxy](https://gitlab.com/hueske-digital/services/proxy) is already set up and started.
+Before you start, ensure you have the following installed on your system:
 
-## Setup instructions
+- Docker: https://docs.docker.com/get-docker/
+- Docker-Compose: https://docs.docker.com/compose/install/
+- Caddy Proxy: https://github.com/hueske-digital/caddy
 
-Clone the code to your server:<br>
+## Installation Steps
+
+**1. Prepare the services directory:**<br>
+Ensure all your services, including Paperless, are organized in the `$HOME/services` directory for easy management.
 ```
-git clone git@gitlab.com:hueske-digital/services/paperless-ngx.git ~/services/paperless-ngx
+mkdir -p $HOME/services
+cd $HOME/services
+```
+**2. Clone the repository:**<br>
+```
+git clone https://github.com/hueske-digital/paperless.git
+cd paperless
+```
+**3. Create a `.env` file:**<br>
+Copy the `.env.example` file to `.env` and adjust the environment variables according to your setup. This usually includes paths and port configurations.
+```
+cp .env.example .env
+vim .env
+```
+**4. Start the stack:**<br>
+Use Docker-Compose to start the paperless stack. This command will pull the necessary Docker images and start the services defined in your `docker-compose.yml` file.
+```
+docker-compose up -d --pull=always
 ```
 
-Create environment file and fill up with your values:<br>
+## Specific Configurations
+This section covers configurations specific to Paperless that aren't part of the standard installation process. These may include adjustments for performance, security, or functionality.
+- **Create first user:**<br>
+The following command will prompt you to set a username, an optional e-mail address and finally a password (at least 8 characters).
 ```
-cd ~/services/paperless-ngx && cp .env.example .env && vim .env
+docker compose run --rm app createsuperuser
+```
+- **Set up the import of encrypted PDF files:**<br>
+To do this, you must adapt the `.env` file by adapting the `PAPERLESS_DECRYPT_PASSWORD` variable with the passwords for decryption.
+```
+# Passwords for decryption (split multiple passwords with whitespaces)
+PAPERLESS_DECRYPT_PASSWORD="test test123"
 ```
 
-Pull images and start the docker compose file:<br>
-```
-docker compose up -d
-```
+## Lifecycle Management
 
-Create a superuser in Paperless-ngx:<br>
+Update the sourcecode and all images. After that recreate them if new images are available:<br>
 ```
-docker-compose run --rm app createsuperuser
-```
-
-Create a host in your nginx proxy manager which points to `paperless-ngx-app-1` with port `8000` and websockets enabled.
-
-## Other information
-
-Update all container images and recreate them if new images are available:<br>
-```
-docker compose pull && docker compose up -d
+git pull
+docker compose up -d --pull=always --remove-orphans
 ```
 
 Restart a single container:<br>
 ```
 docker compose restart app
+```
+
+Recreate the stack (e.g. when changing `.env` file):<br>
+```
+docker compose up -d --force-recreate
 ```
 
 Shutdown all container of this compose file:<br>
@@ -52,6 +77,6 @@ Show and follow logs:<br>
 docker compose logs -ft
 ```
 
-Additional configuration:<br>
-You can include any other docker config by using an additional [compose file](https://docs.docker.com/compose/extends/).
+## Questions, Comments or Suggestions for Changes
 
+We welcome your curiosity, feedback, and contributions! If you have any questions, comments, or suggestions for changes, please feel free to open an issue or submit a pull request on GitHub. Your input is invaluable in making this project better for everyone.
