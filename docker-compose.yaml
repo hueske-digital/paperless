@@ -6,7 +6,7 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      default:
+      app_cache:
 
   db:
     image: postgres:16-alpine
@@ -18,7 +18,7 @@ services:
       POSTGRES_USER: paperless
       POSTGRES_PASSWORD: paperless
     networks:
-      default:
+      app_database:
     labels:
       ofelia.restart: "true"
       ofelia.enabled: "true"
@@ -69,6 +69,8 @@ services:
       PAPERLESS_PRE_CONSUME_SCRIPT: "/usr/local/bin/scripts/decrypt-pdf"
     networks:
       default:
+      app_database:
+      app_cache:
       proxy_apps:
 
   sftp:
@@ -80,7 +82,7 @@ services:
     ports:
       - "2222:22"
     networks:
-      default:
+      sftp:
     command: ${SFTP_USERNAME}:${SFTP_PASSWORD}:1000
     # see https://github.com/atmoz/sftp/issues/341#issuecomment-1509470933
     ulimits:
@@ -103,6 +105,9 @@ services:
       default:
 
 networks:
+  app_database:
+  app_cache:
+  sftp:
   proxy_apps:
     name: proxy_apps
     external: true
