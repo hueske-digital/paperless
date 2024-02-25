@@ -79,7 +79,7 @@ services:
     volumes:
       - sftp_keys:/etc/ssh
       - sftp_data:/home/${SFTP_USERNAME}/documents
-      - $PWD/publickeys:/home/photoprism/.ssh/keys:ro
+      - $PWD/publickeys:/home/${SFTP_USERNAME}/.ssh/keys:ro
     ports:
       - "2222:22"
     networks:
