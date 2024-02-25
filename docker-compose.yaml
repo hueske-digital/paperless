@@ -74,17 +74,17 @@ services:
       proxy_apps:
 
   sftp:
-    image: atmoz/sftp:alpine
+    image: ghcr.io/hueske-digital/sftp:latest
     restart: unless-stopped
     volumes:
+      - sftp_keys:/etc/ssh
       - sftp_data:/home/${SFTP_USERNAME}/documents
-      - $PWD/keys:/etc/ssh:ro
+      - $PWD/publickeys:/home/photoprism/.ssh/keys:ro
     ports:
       - "2222:22"
     networks:
       sftp:
     command: ${SFTP_USERNAME}:${SFTP_PASSWORD}:1000
-    # see https://github.com/atmoz/sftp/issues/341#issuecomment-1509470933
     ulimits:
       nofile:
         soft: 65536

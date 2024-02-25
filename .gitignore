@@ -2,3 +2,5 @@
 ./consume
 ./export
 .idea
+publickeys/*
+!publickeys/README.md
