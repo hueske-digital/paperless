@@ -118,4 +118,5 @@ volumes:
   db_data:
   redis_data:
   sftp_data:
+  sftp_keys:
   app_export:
