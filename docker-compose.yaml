@@ -93,8 +93,11 @@ services:
   gotenberg:
     image: gotenberg/gotenberg:8
     restart: unless-stopped
-    environment:
-      CHROMIUM_DISABLE_ROUTES: 1
+    command:
+      - "gotenberg"
+      - "--chromium-disable-javascript=true"
+      - "--chromium-allow-list=file:///tmp/.*"
+      - "--chromium-disable-routes=true"
     networks:
       default:
 
