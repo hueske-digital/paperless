@@ -9,7 +9,7 @@ services:
       app_cache:
 
   db:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     restart: unless-stopped
     volumes:
       - db_data:/var/lib/postgresql/data
