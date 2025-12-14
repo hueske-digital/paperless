@@ -22,7 +22,7 @@ services:
       ofelia.restart: "true"
       ofelia.enabled: "true"
       ofelia.job-exec.paperlessdbbackup.schedule: "0 0 1 * * *"
-      ofelia.job-exec.paperlessdbbackup.command: "sh -c 'pg_dumpall -U paperless -f /var/lib/postgresql/data/backup.sql'"
+      ofelia.job-exec.paperlessdbbackup.command: "sh -c 'pg_dumpall -U paperless -f /var/lib/postgresql/backup.sql'"
 
   app:
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
