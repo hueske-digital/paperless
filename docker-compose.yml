@@ -1,6 +1,6 @@
 services:
   broker:
-    image: redis:7-alpine
+    image: redis:alpine
     restart: unless-stopped
     volumes:
       - redis_data:/data
@@ -66,11 +66,14 @@ services:
       - PAPERLESS_FILENAME_FORMAT_REMOVE_NONE=true
       - PAPERLESS_DECRYPT_PASSWORD
       - PAPERLESS_PRE_CONSUME_SCRIPT=/usr/local/bin/scripts/decrypt-pdf
+      - CADDY_DOMAIN=${CADDY_DOMAIN}
+      - CADDY_TYPE=${CADDY_TYPE:-internal}
+      - CADDY_PORT=${CADDY_PORT:-8000}
     networks:
       default:
       app_database:
       app_cache:
-      proxy_apps:
+      caddy:
 
   sftp:
     image: ghcr.io/hueske-digital/sftp:latest
@@ -90,7 +93,7 @@ services:
         hard: 65536
 
   gotenberg:
-    image: gotenberg/gotenberg:8
+    image: gotenberg/gotenberg:latest
     restart: unless-stopped
     command:
       - "gotenberg"
@@ -110,9 +113,7 @@ networks:
   app_database:
   app_cache:
   sftp:
-  proxy_apps:
-    name: proxy_apps
-    external: true
+  caddy:
 
 volumes:
   app_data:
