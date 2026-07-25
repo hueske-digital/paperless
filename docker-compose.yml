@@ -66,10 +66,6 @@ services:
       - PAPERLESS_FILENAME_FORMAT_REMOVE_NONE=true
       - PAPERLESS_DECRYPT_PASSWORD
       - PAPERLESS_PRE_CONSUME_SCRIPT=/usr/local/bin/scripts/decrypt-pdf
-      # Abgeschaltet: paperless-gpt vergibt die Titel jetzt automatisch.
-      # Beide gleichzeitig wuerden sich beim Titel widersprechen.
-      # - PAPERLESS_POST_CONSUME_SCRIPT=/usr/local/bin/scripts/post-consume
-      - KI_EMPFAENGER
       - CADDY_DOMAIN=${CADDY_DOMAIN}
       - CADDY_TYPE=${CADDY_TYPE:-internal}
       - CADDY_PORT=${CADDY_PORT:-8000}
@@ -77,48 +73,6 @@ services:
       default:
       app_database:
       app_cache:
-      caddy:
-
-  gpt:
-    image: icereed/paperless-gpt:latest
-    restart: unless-stopped
-    depends_on:
-      - app
-    volumes:
-      - $PWD/gpt-prompts:/app/prompts
-    environment:
-      - PAPERLESS_BASE_URL=http://app:8000
-      - PAPERLESS_API_TOKEN=${GPT_PAPERLESS_TOKEN}
-      - PAPERLESS_PUBLIC_URL=${PAPERLESS_URL}
-      # OpenAI-kompatibler Endpunkt, kein OpenAI - siehe OPENAI_BASE_URL
-      - LLM_PROVIDER=openai
-      - LLM_MODEL=${GPT_LLM_MODEL}
-      - OPENAI_API_KEY=${GPT_LLM_API_KEY}
-      - OPENAI_BASE_URL=${GPT_LLM_ENDPOINT}
-      - LLM_LANGUAGE=German
-      # Ohne Rueckfrage: Titel, Typ und Absender. Typ ist im Prompt auf die
-      # vorhandenen Typen beschraenkt, der Absender-Prompt in gpt-prompts/
-      # ist angepasst, damit keine Dubletten ohne Rechtsform entstehen.
-      # Tags bleiben beim Klassifikator, das Datum bei Paperless - dessen
-      # Prompt setzt sonst stillschweigend das heutige Datum.
-      - AUTO_GENERATE_TITLE=true
-      - AUTO_GENERATE_DOCUMENT_TYPE=true
-      - AUTO_GENERATE_TAGS=false
-      - AUTO_GENERATE_CORRESPONDENTS=true
-      - AUTO_GENERATE_CREATED_DATE=false
-      # Der Endpunkt drosselt frueh; Standard waere 120.
-      - LLM_REQUESTS_PER_MINUTE=${GPT_LLM_RPM:-20}
-      - SUGGESTION_WORKERS=1
-      - LOG_LEVEL=info
-      - CADDY_DOMAIN=${GPT_CADDY_DOMAIN}
-      - CADDY_TYPE=${GPT_CADDY_TYPE:-internal}
-      - CADDY_PORT=8080
-      # paperless-gpt hat KEINE eigene Authentifizierung. Wer den Port
-      # erreicht, kann ohne Anmeldung das ganze Archiv umschreiben.
-      - CADDY_AUTH=${GPT_CADDY_AUTH:-true}
-      - CADDY_AUTH_GROUPS=${GPT_CADDY_AUTH_GROUPS:-larissa_und_tobias}
-    networks:
-      default:
       caddy:
 
   sftp:
