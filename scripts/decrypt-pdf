@@ -1,5 +1,36 @@
 #!/usr/bin/env bash
 
+# Makes decryption reproducible so the same attachment always yields the same
+# checksum and Paperless can recognise a re-consumed mail as a duplicate.
+#
+# qpdf rewrites the file on decryption and assigns a fresh /ID[1] - the PDF
+# trailer identifier that changes on every write. If the same mail is consumed
+# twice (e.g. it was delivered twice and shows up under two IMAP UIDs), the two
+# decrypted copies differ in exactly that field, so duplicate detection fails
+# and both documents are kept. Writing a content-derived /ID instead makes the
+# output byte-identical across runs. Nothing else about the file is changed.
+normalize_pdf() {
+    python3 - "$1" <<'PY'
+import sys
+
+try:
+    import pikepdf
+except ImportError:
+    print("pikepdf unavailable, skipping normalisation")
+    sys.exit(0)
+
+path = sys.argv[1]
+
+try:
+    pdf = pikepdf.open(path, allow_overwriting_input=True)
+    pdf.save(path, deterministic_id=True)
+    pdf.close()
+    print("Normalised: /ID made deterministic")
+except Exception as exc:  # never block consumption on this
+    print("Normalisation skipped: %s" % exc)
+PY
+}
+
 # Check if the file is encrypted
 encryption_info=$(qpdf --show-encryption "${DOCUMENT_WORKING_PATH}" 2>&1)
 
@@ -15,6 +46,7 @@ else
         # Try to decrypt the file with the current password
         if qpdf --decrypt --replace-input --password="$password" "${DOCUMENT_WORKING_PATH}" >/dev/null 2>&1; then
             echo "Decryption successful with provided password"
+            normalize_pdf "${DOCUMENT_WORKING_PATH}"
             exit 0  # Exit the script here since decryption was successful
         else
             echo "Decryption failed with provided password"
