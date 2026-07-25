@@ -77,6 +77,34 @@ services:
       app_cache:
       caddy:
 
+  gpt:
+    image: icereed/paperless-gpt:latest
+    restart: unless-stopped
+    depends_on:
+      - app
+    volumes:
+      - gpt_prompts:/app/prompts
+    environment:
+      - PAPERLESS_BASE_URL=http://app:8000
+      - PAPERLESS_API_TOKEN=${GPT_PAPERLESS_TOKEN}
+      - PAPERLESS_PUBLIC_URL=${PAPERLESS_URL}
+      # OpenAI-kompatibler Endpunkt, kein OpenAI - siehe OPENAI_BASE_URL
+      - LLM_PROVIDER=openai
+      - LLM_MODEL=${GPT_LLM_MODEL}
+      - OPENAI_API_KEY=${GPT_LLM_API_KEY}
+      - OPENAI_BASE_URL=${GPT_LLM_ENDPOINT}
+      - LLM_LANGUAGE=German
+      # Der Endpunkt drosselt frueh; Standard waere 120.
+      - LLM_REQUESTS_PER_MINUTE=${GPT_LLM_RPM:-20}
+      - SUGGESTION_WORKERS=1
+      - LOG_LEVEL=info
+      - CADDY_DOMAIN=${GPT_CADDY_DOMAIN}
+      - CADDY_TYPE=${GPT_CADDY_TYPE:-internal}
+      - CADDY_PORT=8080
+    networks:
+      default:
+      caddy:
+
   sftp:
     image: ghcr.io/hueske-digital/sftp:latest
     restart: unless-stopped
@@ -119,6 +147,7 @@ networks:
 
 volumes:
   app_data:
+  gpt_prompts:
   app_media:
   db_data:
   redis_data:
