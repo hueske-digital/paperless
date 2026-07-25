@@ -1,5 +1,39 @@
 #!/usr/bin/env bash
 
+# Normalises volatile PDF metadata so a document re-sent by the origin lands on
+# the same checksum and Paperless rejects it as a duplicate.
+#
+# Some payroll systems generate the PDF once but stamp a fresh /ModDate on every
+# dispatch; the trailer /ID is derived from it. Two byte-identical documents
+# then differ in exactly those fields, so both get consumed. Dropping /ModDate
+# and writing a content-derived /ID makes them identical again. /CreationDate,
+# page content and XMP stay untouched.
+normalize_pdf() {
+    python3 - "$1" <<'PY'
+import sys
+
+try:
+    import pikepdf
+except ImportError:
+    print("pikepdf unavailable, skipping normalisation")
+    sys.exit(0)
+
+path = sys.argv[1]
+
+try:
+    pdf = pikepdf.open(path, allow_overwriting_input=True)
+    dropped = False
+    if pdf.docinfo is not None and "/ModDate" in pdf.docinfo:
+        del pdf.docinfo["/ModDate"]
+        dropped = True
+    pdf.save(path, deterministic_id=True)
+    pdf.close()
+    print("Normalised: %s/ID made deterministic" % ("/ModDate removed, " if dropped else ""))
+except Exception as exc:  # never block consumption on this
+    print("Normalisation skipped: %s" % exc)
+PY
+}
+
 # Check if the file is encrypted
 encryption_info=$(qpdf --show-encryption "${DOCUMENT_WORKING_PATH}" 2>&1)
 
@@ -15,6 +49,7 @@ else
         # Try to decrypt the file with the current password
         if qpdf --decrypt --replace-input --password="$password" "${DOCUMENT_WORKING_PATH}" >/dev/null 2>&1; then
             echo "Decryption successful with provided password"
+            normalize_pdf "${DOCUMENT_WORKING_PATH}"
             exit 0  # Exit the script here since decryption was successful
         else
             echo "Decryption failed with provided password"
