@@ -43,7 +43,7 @@ services:
       - app_media:/usr/src/paperless/media
       - app_export:/usr/src/paperless/export
       - sftp_data:/usr/src/paperless/consume
-      - $PWD/scripts/decrypt-pdf:/usr/local/bin/scripts/decrypt-pdf
+      - $PWD/scripts:/usr/local/bin/scripts
     environment:
       - PAPERLESS_REDIS=redis://broker:6379
       - PAPERLESS_DBHOST=db
@@ -66,6 +66,8 @@ services:
       - PAPERLESS_FILENAME_FORMAT_REMOVE_NONE=true
       - PAPERLESS_DECRYPT_PASSWORD
       - PAPERLESS_PRE_CONSUME_SCRIPT=/usr/local/bin/scripts/decrypt-pdf
+      - PAPERLESS_POST_CONSUME_SCRIPT=/usr/local/bin/scripts/post-consume
+      - KI_EMPFAENGER
       - CADDY_DOMAIN=${CADDY_DOMAIN}
       - CADDY_TYPE=${CADDY_TYPE:-internal}
       - CADDY_PORT=${CADDY_PORT:-8000}

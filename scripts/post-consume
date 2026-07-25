@@ -1,0 +1,15 @@
+#!/bin/sh
+# Post-Consume-Hook: stoesst die KI-Nachbearbeitung an.
+#
+# Paperless wertet einen Fehlschlag dieses Skripts als Fehlschlag des gesamten
+# Imports (consumer.py ruft self._fail auf) und wartet ausserdem auf sein Ende.
+# Deshalb wird die Arbeit abgekoppelt gestartet und hier sofort erfolgreich
+# beendet - ein langsames oder gedrosseltes Modell darf den Import nicht
+# blockieren und erst recht nicht scheitern lassen.
+
+[ -n "$DOCUMENT_ID" ] || exit 0
+
+setsid /usr/local/bin/scripts/ki-nachbearbeitung "$DOCUMENT_ID" \
+    >> /usr/src/paperless/data/ki-nachbearbeitung.log 2>&1 &
+
+exit 0
