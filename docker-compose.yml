@@ -85,7 +85,7 @@ services:
     depends_on:
       - app
     volumes:
-      - gpt_prompts:/app/prompts
+      - $PWD/gpt-prompts:/app/prompts
     environment:
       - PAPERLESS_BASE_URL=http://app:8000
       - PAPERLESS_API_TOKEN=${GPT_PAPERLESS_TOKEN}
@@ -96,13 +96,15 @@ services:
       - OPENAI_API_KEY=${GPT_LLM_API_KEY}
       - OPENAI_BASE_URL=${GPT_LLM_ENDPOINT}
       - LLM_LANGUAGE=German
-      # Ohne Rueckfrage nur Titel und Typ. Der Typ ist laut Doku auf die
-      # vorhandenen Typen beschraenkt. Absender und Tags bleiben beim
-      # Klassifikator - paperless-gpt wuerde neue Absender anlegen.
+      # Ohne Rueckfrage: Titel, Typ und Absender. Typ ist im Prompt auf die
+      # vorhandenen Typen beschraenkt, der Absender-Prompt in gpt-prompts/
+      # ist angepasst, damit keine Dubletten ohne Rechtsform entstehen.
+      # Tags bleiben beim Klassifikator, das Datum bei Paperless - dessen
+      # Prompt setzt sonst stillschweigend das heutige Datum.
       - AUTO_GENERATE_TITLE=true
       - AUTO_GENERATE_DOCUMENT_TYPE=true
       - AUTO_GENERATE_TAGS=false
-      - AUTO_GENERATE_CORRESPONDENTS=false
+      - AUTO_GENERATE_CORRESPONDENTS=true
       - AUTO_GENERATE_CREATED_DATE=false
       # Der Endpunkt drosselt frueh; Standard waere 120.
       - LLM_REQUESTS_PER_MINUTE=${GPT_LLM_RPM:-20}
@@ -111,6 +113,10 @@ services:
       - CADDY_DOMAIN=${GPT_CADDY_DOMAIN}
       - CADDY_TYPE=${GPT_CADDY_TYPE:-internal}
       - CADDY_PORT=8080
+      # paperless-gpt hat KEINE eigene Authentifizierung. Wer den Port
+      # erreicht, kann ohne Anmeldung das ganze Archiv umschreiben.
+      - CADDY_AUTH=${GPT_CADDY_AUTH:-true}
+      - CADDY_AUTH_GROUPS=${GPT_CADDY_AUTH_GROUPS:-larissa_und_tobias}
     networks:
       default:
       caddy:
@@ -157,7 +163,6 @@ networks:
 
 volumes:
   app_data:
-  gpt_prompts:
   app_media:
   db_data:
   redis_data:
