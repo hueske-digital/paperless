@@ -66,7 +66,9 @@ services:
       - PAPERLESS_FILENAME_FORMAT_REMOVE_NONE=true
       - PAPERLESS_DECRYPT_PASSWORD
       - PAPERLESS_PRE_CONSUME_SCRIPT=/usr/local/bin/scripts/decrypt-pdf
-      - PAPERLESS_POST_CONSUME_SCRIPT=/usr/local/bin/scripts/post-consume
+      # Abgeschaltet: paperless-gpt vergibt die Titel jetzt automatisch.
+      # Beide gleichzeitig wuerden sich beim Titel widersprechen.
+      # - PAPERLESS_POST_CONSUME_SCRIPT=/usr/local/bin/scripts/post-consume
       - KI_EMPFAENGER
       - CADDY_DOMAIN=${CADDY_DOMAIN}
       - CADDY_TYPE=${CADDY_TYPE:-internal}
@@ -94,6 +96,14 @@ services:
       - OPENAI_API_KEY=${GPT_LLM_API_KEY}
       - OPENAI_BASE_URL=${GPT_LLM_ENDPOINT}
       - LLM_LANGUAGE=German
+      # Ohne Rueckfrage nur Titel und Typ. Der Typ ist laut Doku auf die
+      # vorhandenen Typen beschraenkt. Absender und Tags bleiben beim
+      # Klassifikator - paperless-gpt wuerde neue Absender anlegen.
+      - AUTO_GENERATE_TITLE=true
+      - AUTO_GENERATE_DOCUMENT_TYPE=true
+      - AUTO_GENERATE_TAGS=false
+      - AUTO_GENERATE_CORRESPONDENTS=false
+      - AUTO_GENERATE_CREATED_DATE=false
       # Der Endpunkt drosselt frueh; Standard waere 120.
       - LLM_REQUESTS_PER_MINUTE=${GPT_LLM_RPM:-20}
       - SUGGESTION_WORKERS=1
