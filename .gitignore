@@ -4,3 +4,7 @@
 .idea
 publickeys/*
 !publickeys/README.md
+# paperless-gpt legt beim Start alle fehlenden Prompt-Vorlagen an.
+# Versioniert wird nur, was wir bewusst angepasst haben.
+gpt-prompts/*
+!gpt-prompts/correspondent_prompt.tmpl
